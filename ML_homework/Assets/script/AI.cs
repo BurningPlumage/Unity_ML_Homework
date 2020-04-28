@@ -33,7 +33,6 @@ public class AI : MonoBehaviour//Agent
     private void FixedUpdate()
     {
         can_jump = Physics2D.OverlapArea(point1.transform.position, point2.transform.position, LayerMask.GetMask("floor"));
-        if (can_jump) Debug.Log("y");
     }
 
     private void LateUpdate()
