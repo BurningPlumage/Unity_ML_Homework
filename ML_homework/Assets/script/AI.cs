@@ -39,17 +39,6 @@ public class AI :/*MonoBehaviour*/ Agent
         timecount_text.text = timecount.ToString("F2");
         now_score.text = number.ToString();
 
-        /*
-        float movex = Input.GetAxis("Horizontal") * speed;
-        if (Input.GetButtonDown("Jump") && can_jump) 
-        {
-            rig.velocity = new Vector2(movex, 100);
-            ani.SetTrigger("jump");
-        }
-        else
-        {
-            rig.velocity = new Vector2(movex, rig.velocity.y);
-        }*/
 
         ani.SetFloat("move", Mathf.Abs(rig.velocity.x));
         if (rig.velocity.x > 1)
@@ -76,25 +65,28 @@ public class AI :/*MonoBehaviour*/ Agent
     {
         if (collision.transform.tag == "virus")
         {
-            number += 1;
+            number -= 1;
             collision.gameObject.SetActive(false);
         }
     }
 
     //AI
-    
+
+    private int debugscore;
+
     public override void OnEpisodeBegin()
     {
         for(int i = 0; i < virus.Length; i++)
         {
-            virus[i].transform.position = new Vector3(Random.Range(-38.0f, 38.0f), Random.Range(1.0f, 39f), 0);
+            virus[i].transform.position = new Vector3(Random.Range(-38.0f, 38.0f), Random.Range(1.0f, 43f), 0);
             virus[i].SetActive(true);
         }
 
         transform.position = new Vector3(0, 1, 0);
 
         timecount = 120;
-        number = 0;
+        number = 5;
+        debugscore = 0;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -117,10 +109,11 @@ public class AI :/*MonoBehaviour*/ Agent
     {
         float movex = vectorAction[0] * speed;
         if (vectorAction[1] > 0) jump = true;
+        else jump = false;
 
         if (jump && can_jump)
         {
-            rig.velocity = new Vector2(movex, 100);
+            rig.velocity = new Vector2(movex, 180);
             ani.SetTrigger("jump");
         }
         else
@@ -128,17 +121,21 @@ public class AI :/*MonoBehaviour*/ Agent
             rig.velocity = new Vector2(movex, rig.velocity.y);
         }
 
-        Invoke("closejump", 0.01f);
+        if ((5 - number) > debugscore)
+        {
+            debugscore += 1;
+            AddReward(1);
+            Debug.Log(GetCumulativeReward().ToString());
+        }
 
         //rndturn
         if (timecount <= 0)
         {
-            float scorepoint = -(5 - number);
-            SetReward(scorepoint);
-            last_score.text = scorepoint.ToString();
+            AddReward(-5);
+            last_score.text = GetCumulativeReward().ToString();
             EndEpisode();
         }
-        if (number >= 5)
+        if (number <= 0)
         {
             float scorepoint;
             if (timecount > 100)
@@ -149,8 +146,8 @@ public class AI :/*MonoBehaviour*/ Agent
             {
                 scorepoint = timecount / 20;
             }
-            SetReward(scorepoint);
-            last_score.text = scorepoint.ToString();
+            AddReward(scorepoint);
+            last_score.text = GetCumulativeReward().ToString();
             EndEpisode();
         }
         
@@ -169,8 +166,4 @@ public class AI :/*MonoBehaviour*/ Agent
         }
     }
 
-    public void closejump()
-    {
-        jump = false;
-    }
 }
